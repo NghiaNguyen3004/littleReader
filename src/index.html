@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audiobook Player</title>
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- PDF.js Library - For reading and extracting text from PDF files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    
+    <!-- Puter.js - Free Text-to-Speech API (No API key needed!) -->
+    <script src="https://js.puter.com/v2/"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 Audiobook Player</h1>
+        
+        <div class="upload-section">
+            <input type="file" id="pdfUpload" accept=".pdf">
+            <button id="convertButton">Convert to Audiobook</button>
+        </div>
+
+        <div class="voice-settings">
+            <label for="voiceSelect">Voice:</label>
+            <select id="voiceSelect">
+                <option value="Joanna">Joanna (Female)</option>
+                <option value="Matthew">Matthew (Male)</option>
+                <option value="Salli">Salli (Female)</option>
+                <option value="Joey">Joey (Male)</option>
+            </select>
+
+            <label for="engineSelect">Engine:</label>
+            <select id="engineSelect">
+                <option value="standard">Standard</option>
+                <option value="neural">Neural (Higher Quality)</option>
+                <option value="generative">Generative (Most Natural)</option>
+            </select>
+        </div>
+
+        <div class="status" id="status"></div>
+        
+        <div class="audio-controls">
+            <audio id="audioPlayer" controls></audio>
+        </div>
+    </div>
+
+    <script src="js/pdfHandler.js"></script>
+    <script src="js/ttsConverter.js"></script>
+    <script src="js/audioPlayer.js"></script>
+    <script src="js/apiClient.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

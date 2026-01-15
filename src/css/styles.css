@@ -1,0 +1,194 @@
+/**
+ * STYLES.CSS
+ * ==========
+ * This file contains all the visual styling for our audiobook player.
+ * 
+ * What does it do?
+ * - Makes the app look nice and professional
+ * - Creates a clean, easy-to-use interface
+ * - Adds colors, spacing, and layout
+ * 
+ * CSS Basics for Beginners:
+ * - "body" = styles for the whole webpage
+ * - ".container" = a class that centers content
+ * - "#status" = an ID for a specific element
+ * - Colors are in hex format (#ffffff = white)
+ */
+
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: #333;
+}
+
+/* Main container */
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+/* Heading */
+h1 {
+    text-align: center;
+    color: #667eea;
+    margin-bottom: 30px;
+    font-size: 2.5em;
+    font-weight: 600;
+}
+
+/* Upload section */
+.upload-section {
+    margin-bottom: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 2px dashed #667eea;
+}
+
+#pdfUpload {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#pdfUpload:hover {
+    border-color: #667eea;
+}
+
+/* Convert button */
+#convertButton {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+#convertButton:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+#convertButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Voice settings */
+.voice-settings {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.voice-settings label {
+    font-weight: 600;
+    margin-right: 10px;
+    color: #555;
+}
+
+.voice-settings select {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.voice-settings select:hover {
+    border-color: #667eea;
+}
+
+/* Status messages */
+.status {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 500;
+    display: none; /* Hidden by default */
+}
+
+.status.loading {
+    display: block;
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.status.success {
+    display: block;
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.status.error {
+    display: block;
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Audio controls */
+.audio-controls {
+    margin-top: 20px;
+}
+
+#audioPlayer {
+    width: 100%;
+    display: none; /* Hidden until audio is loaded */
+    border-radius: 10px;
+    outline: none;
+}
+
+#audioPlayer::-webkit-media-controls-panel {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Responsive design for mobile */
+@media (max-width: 600px) {
+    .container {
+        padding: 20px;
+    }
+
+    h1 {
+        font-size: 1.8em;
+    }
+
+    .voice-settings {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .voice-settings select {
+        width: 100%;
+    }
+}
