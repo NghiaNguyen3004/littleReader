@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Speech API Demo - TTS Function</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .code-block {
+            background: #f8f8f8;
+            border-left: 4px solid #4CAF50;
+            padding: 15px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        pre {
+            margin: 0;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button.stop {
+            background: #f44336;
+        }
+        button.stop:hover {
+            background: #da190b;
+        }
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Web Speech API - Text-to-Speech Demo</h1>
+        
+        <div class="info">
+            <strong>What is the Web Speech API?</strong>
+            <p>The Web Speech API has TWO main parts:</p>
+            <ol>
+                <li><strong>Speech Recognition</strong> (Speech-to-Text) - Converts voice to text</li>
+                <li><strong>Speech Synthesis</strong> (Text-to-Speech) - Converts text to voice ✨</li>
+            </ol>
+            <p><strong>We're using Speech Synthesis!</strong></p>
+        </div>
+
+        <h2>📖 Documentation</h2>
+        <div class="code-block">
+            <strong>Official MDN Documentation:</strong><br>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis" target="_blank">
+                https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis
+            </a>
+        </div>
+
+        <h2>💻 How It Works (Basic Example)</h2>
+        <div class="code-block">
+            <pre><code>// Step 1: Create an utterance (text to speak)
+const utterance = new SpeechSynthesisUtterance("Hello, world!");
+
+// Step 2: Speak it!
+speechSynthesis.speak(utterance);
+
+// That's it! 🎉</code></pre>
+        </div>
+
+        <h2>🎛️ Advanced Example with Options</h2>
+        <div class="code-block">
+            <pre><code>// Create utterance
+const utterance = new SpeechSynthesisUtterance("This is a test");
+
+// Set voice (optional)
+const voices = speechSynthesis.getVoices();
+utterance.voice = voices[0];
+
+// Set speed (0.1 to 10)
+utterance.rate = 1;
+
+// Set pitch (0 to 2)
+utterance.pitch = 1;
+
+// Set volume (0 to 1)
+utterance.volume = 1;
+
+// Speak it
+speechSynthesis.speak(utterance);</code></pre>
+        </div>
+
+        <h2>🧪 Try It Yourself!</h2>
+        
+        <label for="textInput"><strong>Text to Speak:</strong></label>
+        <textarea id="textInput">Hello! This is the Web Speech API. It's built into your browser, completely free, and requires no API keys!</textarea>
+        
+        <div>
+            <label for="voiceSelect"><strong>Select Voice:</strong></label><br>
+            <select id="voiceSelect"></select>
+        </div>
+
+        <div>
+            <label><strong>Speed:</strong></label>
+            <input type="range" id="rateSlider" min="0.5" max="2" step="0.1" value="1">
+            <span id="rateValue">1x</span>
+        </div>
+
+        <div>
+            <label><strong>Pitch:</strong></label>
+            <input type="range" id="pitchSlider" min="0" max="2" step="0.1" value="1">
+            <span id="pitchValue">1</span>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <button onclick="speak()">▶️ Speak</button>
+            <button onclick="pause()">⏸️ Pause</button>
+            <button onclick="resume()">▶️ Resume</button>
+            <button class="stop" onclick="stop()">⏹️ Stop</button>
+        </div>
+
+        <h2>✅ Key Features</h2>
+        <ul>
+            <li>✅ 100% FREE - No API keys needed</li>
+            <li>✅ Works OFFLINE - Built into the browser</li>
+            <li>✅ Truly UNLIMITED - No usage limits</li>
+            <li>✅ Multiple voices available</li>
+            <li>✅ Adjustable speed, pitch, and volume</li>
+            <li>✅ Pause/Resume support</li>
+            <li>✅ Works in Chrome, Edge, Safari, Firefox</li>
+        </ul>
+
+        <h2>🔧 Main API Methods</h2>
+        <div class="code-block">
+            <pre><code>// Global API available in window
+speechSynthesis.speak(utterance)    // Speak text
+speechSynthesis.pause()             // Pause speaking
+speechSynthesis.resume()            // Resume speaking
+speechSynthesis.cancel()            // Stop speaking
+speechSynthesis.getVoices()         // Get available voices
+
+// Properties
+speechSynthesis.speaking            // Is currently speaking?
+speechSynthesis.paused              // Is currently paused?
+speechSynthesis.pending             // Is text in queue?</code></pre>
+        </div>
+    </div>
+
+    <script>
+        // Load voices
+        let voices = [];
+        
+        function loadVoices() {
+            voices = speechSynthesis.getVoices();
+            const voiceSelect = document.getElementById('voiceSelect');
+            voiceSelect.innerHTML = '';
+            
+            voices.forEach((voice, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                if (voice.default) {
+                    option.textContent += ' - DEFAULT';
+                    option.selected = true;
+                }
+                voiceSelect.appendChild(option);
+            });
+
+            console.log(`Loaded ${voices.length} voices:`, voices);
+        }
+
+        // Load voices when ready
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = loadVoices;
+        }
+        loadVoices();
+
+        // Update rate display
+        document.getElementById('rateSlider').addEventListener('input', (e) => {
+            document.getElementById('rateValue').textContent = e.target.value + 'x';
+        });
+
+        // Update pitch display
+        document.getElementById('pitchSlider').addEventListener('input', (e) => {
+            document.getElementById('pitchValue').textContent = e.target.value;
+        });
+
+        // Speak function
+        function speak() {
+            const text = document.getElementById('textInput').value;
+            const voiceIndex = document.getElementById('voiceSelect').value;
+            const rate = document.getElementById('rateSlider').value;
+            const pitch = document.getElementById('pitchSlider').value;
+
+            // Create utterance
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            // Set voice
+            if (voices.length > 0 && voiceIndex >= 0) {
+                utterance.voice = voices[voiceIndex];
+            }
+
+            // Set options
+            utterance.rate = parseFloat(rate);
+            utterance.pitch = parseFloat(pitch);
+            utterance.volume = 1;
+
+            // Event listeners
+            utterance.onstart = () => {
+                console.log('Started speaking');
+            };
+
+            utterance.onend = () => {
+                console.log('Finished speaking');
+            };
+
+            utterance.onerror = (event) => {
+                console.error('Speech error:', event);
+            };
+
+            // Speak!
+            speechSynthesis.speak(utterance);
+        }
+
+        function pause() {
+            speechSynthesis.pause();
+        }
+
+        function resume() {
+            speechSynthesis.resume();
+        }
+
+        function stop() {
+            speechSynthesis.cancel();
+        }
+    </script>
+</body>
+</html>

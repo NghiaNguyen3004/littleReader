@@ -9,8 +9,8 @@
     <!-- PDF.js Library - For reading and extracting text from PDF files -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     
-    <!-- Puter.js - Free Text-to-Speech API (No API key needed!) -->
-    <script src="https://js.puter.com/v2/"></script>
+    <!-- Web Speech API (Built into browsers - No external scripts needed!) -->
+    <!-- The SpeechSynthesis API is natively available in modern browsers -->
 </head>
 <body>
     <div class="container">
@@ -24,24 +24,40 @@
         <div class="voice-settings">
             <label for="voiceSelect">Voice:</label>
             <select id="voiceSelect">
-                <option value="Joanna">Joanna (Female)</option>
-                <option value="Matthew">Matthew (Male)</option>
-                <option value="Salli">Salli (Female)</option>
-                <option value="Joey">Joey (Male)</option>
+                <!-- Voices will be populated dynamically from browser -->
+                <option value="">Loading voices...</option>
             </select>
 
-            <label for="engineSelect">Engine:</label>
-            <select id="engineSelect">
-                <option value="standard">Standard</option>
-                <option value="neural">Neural (Higher Quality)</option>
-                <option value="generative">Generative (Most Natural)</option>
+            <label for="rateSelect">Speed:</label>
+            <select id="rateSelect">
+                <option value="0.5">0.5x (Slow)</option>
+                <option value="0.75">0.75x</option>
+                <option value="1" selected>1x (Normal)</option>
+                <option value="1.25">1.25x</option>
+                <option value="1.5">1.5x (Fast)</option>
+                <option value="2">2x (Very Fast)</option>
             </select>
+
+            <label for="pitchSelect">Pitch:</label>
+            <select id="pitchSelect">
+                <option value="0.5">Low</option>
+                <option value="1" selected>Normal</option>
+                <option value="1.5">High</option>
+                <option value="2">Very High</option>
+            </select>
+        </div>
+
+        <div class="playback-controls" id="playbackControls" style="display: none;">
+            <button id="pauseBtn">⏸️ Pause</button>
+            <button id="resumeBtn" style="display: none;">▶️ Resume</button>
+            <button id="stopBtn">⏹️ Stop</button>
         </div>
 
         <div class="status" id="status"></div>
         
-        <div class="audio-controls">
-            <audio id="audioPlayer" controls></audio>
+        <div class="progress-info" id="progressInfo" style="display: none;">
+            <p>Speaking: <span id="currentText"></span></p>
+            <p>Progress: <span id="progressPercent">0%</span></p>
         </div>
     </div>
 
