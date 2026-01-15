@@ -200,7 +200,7 @@ function addNaturalPauses(text) {
  * @param {number} maxSentencesPerChunk - Maximum sentences per chunk (default: 3)
  * @returns {Array<string>} - Array of text chunks
  */
-function splitTextIntoChunks(text, maxSentencesPerChunk = 3) {
+function splitTextIntoChunks(text, maxSentencesPerChunk = 1) {
     // Add natural pauses first
     const enhancedText = addNaturalPauses(text);
 
