@@ -149,8 +149,8 @@ async function convertTextToSpeech(text, options = {}) {
 
     const finalOptions = { ...defaultOptions, ...options };
 
-    // Split long text into smaller chunks (Web Speech API works better with chunks)
-    textChunks = splitTextIntoChunks(processedText, 200); // 200 characters per chunk
+    // Split long text into sentence-based chunks (Web Speech API works better with complete sentences)
+    textChunks = splitTextIntoChunks(processedText, 3); // 3 sentences per chunk
     currentChunkIndex = 0;
 
     console.log(`📝 Split text into ${textChunks.length} chunks for better speech quality`);
@@ -160,30 +160,79 @@ async function convertTextToSpeech(text, options = {}) {
 }
 
 /**
- * Split text into smaller chunks for better speech synthesis
+ * Add natural pauses with punctuation for better speech flow
+ * @param {string} text - The text to enhance with pauses
+ * @returns {string} - Text with enhanced punctuation for natural pauses
+ */
+function addNaturalPauses(text) {
+    let enhanced = text;
+
+    // Add commas after common transitional phrases for natural pauses
+    const transitions = [
+        'However', 'Therefore', 'Furthermore', 'Moreover', 'Nevertheless',
+        'Additionally', 'Consequently', 'Subsequently', 'Meanwhile',
+        'In addition', 'For example', 'For instance', 'In fact', 'In contrast',
+        'On the other hand', 'As a result', 'In conclusion', 'Finally'
+    ];
+
+    transitions.forEach(transition => {
+        // Add comma after transition if not already present
+        const regex = new RegExp(`\\b${transition}\\b(?!,)`, 'gi');
+        enhanced = enhanced.replace(regex, `${transition},`);
+    });
+
+    // Ensure proper spacing after punctuation
+    enhanced = enhanced.replace(/([.!?])\s*/g, '$1 '); // Space after sentence endings
+    enhanced = enhanced.replace(/,\s*/g, ', '); // Space after commas
+    enhanced = enhanced.replace(/:\s*/g, ': '); // Space after colons
+    enhanced = enhanced.replace(/;\s*/g, '; '); // Space after semicolons
+
+    // Normalize excessive spaces
+    enhanced = enhanced.replace(/\s+/g, ' ').trim();
+
+    return enhanced;
+}
+
+/**
+ * Split text into sentence-based chunks for better speech synthesis
+ * This ensures we never break in the middle of a sentence
  * @param {string} text - The text to split
- * @param {number} maxLength - Maximum characters per chunk
+ * @param {number} maxSentencesPerChunk - Maximum sentences per chunk (default: 3)
  * @returns {Array<string>} - Array of text chunks
  */
-function splitTextIntoChunks(text, maxLength = 200) {
-    const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
-    const chunks = [];
-    let currentChunk = '';
+function splitTextIntoChunks(text, maxSentencesPerChunk = 1) {
+    // Add natural pauses first
+    const enhancedText = addNaturalPauses(text);
 
-    for (const sentence of sentences) {
-        if ((currentChunk + sentence).length > maxLength && currentChunk) {
-            chunks.push(currentChunk.trim());
-            currentChunk = sentence;
-        } else {
-            currentChunk += ' ' + sentence;
+    // Split into sentences using multiple delimiters (. ! ?)
+    // This regex captures the punctuation with the sentence
+    const sentencePattern = /[^.!?]+[.!?]+/g;
+    const sentences = enhancedText.match(sentencePattern);
+
+    // If no sentences found (text without punctuation), return as single chunk
+    if (!sentences || sentences.length === 0) {
+        return [enhancedText];
+    }
+
+    const chunks = [];
+    let currentChunk = [];
+
+    for (let i = 0; i < sentences.length; i++) {
+        const sentence = sentences[i].trim();
+        currentChunk.push(sentence);
+
+        // Create chunk when we reach max sentences or end of text
+        if (currentChunk.length >= maxSentencesPerChunk || i === sentences.length - 1) {
+            const chunk = currentChunk.join(' ').trim();
+            if (chunk) {
+                chunks.push(chunk);
+            }
+            currentChunk = [];
         }
     }
 
-    if (currentChunk.trim()) {
-        chunks.push(currentChunk.trim());
-    }
-
-    return chunks.length > 0 ? chunks : [text];
+    console.log(`✂️ Split into ${chunks.length} sentence-based chunks (${maxSentencesPerChunk} sentences per chunk)`);
+    return chunks.length > 0 ? chunks : [enhancedText];
 }
 
 /**
