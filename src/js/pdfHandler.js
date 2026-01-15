@@ -84,15 +84,43 @@ function extractTextFromPDF(pdfData) {
                     pdf.getPage(i).then(page => {
                         return page.getTextContent().then(content => {
                             // Each page has "items" which are pieces of text
-                            // Use item.str and check if space is needed based on hasEOL (end of line)
+                            // Smart spacing: detect if space is needed based on position
                             let pageText = '';
                             content.items.forEach((item, index) => {
-                                pageText += item.str;
-                                // Add space if there's a gap or end of line, but not within words
-                                if (item.hasEOL || (index < content.items.length - 1 && item.str.trim())) {
-                                    pageText += ' ';
+                                const currentText = item.str;
+                                
+                                // Skip empty items
+                                if (!currentText.trim()) {
+                                    return;
+                                }
+                                
+                                // Add the text
+                                pageText += currentText;
+                                
+                                // Determine if we need a space after this item
+                                if (index < content.items.length - 1) {
+                                    const nextItem = content.items[index + 1];
+                                    
+                                    // Add space if:
+                                    // 1. Current text ends with punctuation or letter
+                                    // 2. Next item exists and has content
+                                    // 3. There's significant horizontal distance OR end of line
+                                    if (nextItem && nextItem.str.trim()) {
+                                        // Check if there's actual spacing in the PDF (transform[4] is x-position)
+                                        const hasSpace = item.hasEOL || 
+                                                       currentText.endsWith(' ') ||
+                                                       (item.transform && nextItem.transform && 
+                                                        Math.abs(nextItem.transform[4] - (item.transform[4] + item.width)) > 1);
+                                        
+                                        if (hasSpace) {
+                                            pageText += ' ';
+                                        }
+                                    }
                                 }
                             });
+                            
+                            // Clean up multiple spaces
+                            pageText = pageText.replace(/\s+/g, ' ').trim();
                             textContent += pageText + ' ';
                             console.log(`  Page ${i}/${numPages} processed`);
                         });
