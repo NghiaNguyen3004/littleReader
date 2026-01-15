@@ -84,8 +84,15 @@ function extractTextFromPDF(pdfData) {
                     pdf.getPage(i).then(page => {
                         return page.getTextContent().then(content => {
                             // Each page has "items" which are pieces of text
-                            // Join them together with spaces
-                            const pageText = content.items.map(item => item.str).join(' ');
+                            // Use item.str and check if space is needed based on hasEOL (end of line)
+                            let pageText = '';
+                            content.items.forEach((item, index) => {
+                                pageText += item.str;
+                                // Add space if there's a gap or end of line, but not within words
+                                if (item.hasEOL || (index < content.items.length - 1 && item.str.trim())) {
+                                    pageText += ' ';
+                                }
+                            });
                             textContent += pageText + ' ';
                             console.log(`  Page ${i}/${numPages} processed`);
                         });
