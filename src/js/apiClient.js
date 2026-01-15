@@ -1,84 +1,130 @@
 /**
  * API CLIENT
  * ==========
- * This file manages communication with external APIs.
+ * This file manages communication with the Web Speech API.
  * 
  * What does it do?
- * - Provides a centralized place for all API calls
- * - Handles errors from API requests
- * - Makes it easy to switch APIs in the future
+ * - Provides helper functions for the Speech Synthesis API
+ * - Handles voice selection and management
+ * - Provides utility functions for speech control
  * 
  * Currently using:
- * - Puter.js for Text-to-Speech (FREE, no API key needed!)
+ * - Web Speech API (SpeechSynthesis) - Built into browsers!
  * 
- * Why Puter.js?
- * - 100% FREE with unlimited usage
- * - No sign-up or API keys required
- * - High-quality voices with multiple engines
- * - Simply include their script tag and start using
+ * Why Web Speech API?
+ * - 100% FREE with truly unlimited usage
+ * - No sign-up, no API keys, no external servers
+ * - Works OFFLINE
+ * - Built into modern browsers (Chrome, Edge, Safari, Firefox)
+ * - Multiple voices available
  */
 
 /**
- * Fetch audio from Puter.js Text-to-Speech API
- * @param {string} text - The text to convert to speech
- * @param {object} options - Voice settings (voice, engine, language)
- * @returns {Promise<Audio>} - Audio object from Puter.js
+ * Get all available voices from the browser
+ * Note: Voices load asynchronously, so we need to wait for them
+ * @returns {Promise<Array>} - Array of available voice objects
  */
-const fetchTTS = async (text, options = {}) => {
-    try {
-        // Validate that Puter.js is loaded
-        if (typeof puter === 'undefined') {
-            throw new Error('Puter.js is not loaded. Please check your internet connection.');
-        }
-
-        // Default options
-        const defaultOptions = {
-            voice: "Joanna",
-            engine: "neural",
-            language: "en-US"
-        };
-
-        // Merge options
-        const finalOptions = { ...defaultOptions, ...options };
-
-        // Call Puter.js TTS API
-        const audio = await puter.ai.txt2speech(text, finalOptions);
+const getAvailableVoices = () => {
+    return new Promise((resolve) => {
+        let voices = window.speechSynthesis.getVoices();
         
-        return audio;
-    } catch (error) {
-        console.error('Error fetching TTS:', error);
-        throw new Error(`Failed to fetch audio: ${error.message}`);
-    }
-};
-
-/**
- * Check if Puter.js is available
- * @returns {boolean} - True if Puter.js is loaded and ready
- */
-const isPuterAvailable = () => {
-    return typeof puter !== 'undefined' && typeof puter.ai !== 'undefined';
-};
-
-/**
- * Get information about available TTS engines
- * @returns {Array} - List of available engines with descriptions
- */
-const getAvailableEngines = () => {
-    return [
-        {
-            name: 'standard',
-            description: 'Default engine with good quality',
-            quality: 'Good'
-        },
-        {
-            name: 'neural',
-            description: 'Higher quality, more natural-sounding speech',
-            quality: 'Better'
-        },
-        {
-            name: 'generative',
-            description: 'Most human-like speech using advanced AI',
-            quality: 'Best'
+        if (voices.length > 0) {
+            resolve(voices);
+            return;
         }
-    ];
+
+        // Voices might not be loaded yet, wait for them
+        window.speechSynthesis.onvoiceschanged = () => {
+            voices = window.speechSynthesis.getVoices();
+            resolve(voices);
+        };
+        
+        // Fallback timeout
+        setTimeout(() => {
+            voices = window.speechSynthesis.getVoices();
+            resolve(voices);
+        }, 100);
+    });
+};
+
+/**
+ * Get voices filtered by language
+ * @param {string} language - Language code (e.g., 'en-US', 'en-GB')
+ * @returns {Promise<Array>} - Array of voices for that language
+ */
+const getVoicesByLanguage = async (language = 'en') => {
+    const allVoices = await getAvailableVoices();
+    return allVoices.filter(voice => voice.lang.startsWith(language));
+};
+
+/**
+ * Find a specific voice by name
+ * @param {string} voiceName - Name of the voice to find
+ * @returns {Promise<Object|null>} - Voice object or null if not found
+ */
+const findVoiceByName = async (voiceName) => {
+    const allVoices = await getAvailableVoices();
+    return allVoices.find(voice => voice.name === voiceName) || null;
+};
+
+/**
+ * Get default voice for a language
+ * @param {string} language - Language code (default: 'en')
+ * @returns {Promise<Object|null>} - Default voice object
+ */
+const getDefaultVoice = async (language = 'en') => {
+    const voices = await getVoicesByLanguage(language);
+    
+    // Try to find a default voice
+    const defaultVoice = voices.find(voice => voice.default);
+    if (defaultVoice) return defaultVoice;
+    
+    // Return first available voice for that language
+    return voices[0] || null;
+};
+
+/**
+ * Check if Web Speech API is available
+ * @returns {boolean} - True if available, false otherwise
+ */
+const isSpeechSynthesisAvailable = () => {
+    return 'speechSynthesis' in window;
+};
+
+/**
+ * Get speech synthesis status
+ * @returns {Object} - Object with status information
+ */
+const getSpeechStatus = () => {
+    if (!isSpeechSynthesisAvailable()) {
+        return {
+            available: false,
+            speaking: false,
+            paused: false,
+            pending: false
+        };
+    }
+
+    return {
+        available: true,
+        speaking: window.speechSynthesis.speaking,
+        paused: window.speechSynthesis.paused,
+        pending: window.speechSynthesis.pending
+    };
+};
+
+/**
+ * Format voice information for display
+ * @param {Object} voice - Voice object from Speech Synthesis API
+ * @returns {string} - Formatted voice name
+ */
+const formatVoiceName = (voice) => {
+    if (!voice) return 'Unknown Voice';
+    
+    // Extract useful info
+    const name = voice.name;
+    const lang = voice.lang;
+    const local = voice.localService ? '(Local)' : '(Online)';
+    
+    return `${name} [${lang}] ${local}`;
 };

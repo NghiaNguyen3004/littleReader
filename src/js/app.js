@@ -9,36 +9,96 @@
  * - Connects all the other files together
  * - Controls the flow: Upload PDF → Extract Text → Convert to Speech → Play Audio
  * 
- * Think of it as the conductor of an orchestra, telling each musician (file) when to play!
+ * Now using: Web Speech API (Built into browsers - 100% free!)
  */
 
 // Wait for the webpage to fully load before running our code
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     console.log('🎵 Audiobook Player loaded successfully!');
 
-    // Get references to HTML elements (like buttons and inputs)
-    const pdfUpload = document.getElementById('pdfUpload');        // The file upload button
-    const convertButton = document.getElementById('convertButton'); // The "Convert" button
-    const audioPlayer = document.getElementById('audioPlayer');     // The audio player
-    const statusDiv = document.getElementById('status');            // Status message area
-    const voiceSelect = document.getElementById('voiceSelect');     // Voice dropdown
-    const engineSelect = document.getElementById('engineSelect');   // Engine dropdown
+    // Check if browser supports Web Speech API
+    if (!('speechSynthesis' in window)) {
+        alert('❌ Your browser does not support the Web Speech API. Please use Chrome, Edge, Safari, or Firefox.');
+        return;
+    }
+
+    // Get references to HTML elements
+    const pdfUpload = document.getElementById('pdfUpload');
+    const convertButton = document.getElementById('convertButton');
+    const statusDiv = document.getElementById('status');
+    const voiceSelect = document.getElementById('voiceSelect');
+    const rateSelect = document.getElementById('rateSelect');
+    const pitchSelect = document.getElementById('pitchSelect');
+    const playbackControls = document.getElementById('playbackControls');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resumeBtn = document.getElementById('resumeBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const progressInfo = document.getElementById('progressInfo');
+    const currentTextSpan = document.getElementById('currentText');
+    const progressPercent = document.getElementById('progressPercent');
 
     // Variable to store the extracted text from PDF
     let extractedText = '';
 
+    // Load available voices
+    await loadVoices();
+
     /**
-     * STEP 1: Handle PDF file upload
-     * When user selects a PDF file, this code runs
+     * Load and populate voice options
      */
-    pdfUpload.addEventListener('change', async (event) => {
-        const file = event.target.files[0]; // Get the selected file
+    async function loadVoices() {
+        const voices = await getAvailableVoices();
         
-        if (!file) {
-            return; // Exit if no file was selected
+        if (voices.length === 0) {
+            voiceSelect.innerHTML = '<option value="">No voices available</option>';
+            return;
         }
 
-        // Check if it's actually a PDF file
+        // Clear loading message
+        voiceSelect.innerHTML = '';
+
+        // Group voices by language
+        const englishVoices = voices.filter(v => v.lang.startsWith('en'));
+        const otherVoices = voices.filter(v => !v.lang.startsWith('en'));
+
+        // Add English voices first
+        if (englishVoices.length > 0) {
+            const englishGroup = document.createElement('optgroup');
+            englishGroup.label = 'English Voices';
+            englishVoices.forEach(voice => {
+                const option = document.createElement('option');
+                option.value = voice.name;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                if (voice.default) option.selected = true;
+                englishGroup.appendChild(option);
+            });
+            voiceSelect.appendChild(englishGroup);
+        }
+
+        // Add other language voices
+        if (otherVoices.length > 0) {
+            const otherGroup = document.createElement('optgroup');
+            otherGroup.label = 'Other Languages';
+            otherVoices.forEach(voice => {
+                const option = document.createElement('option');
+                option.value = voice.name;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                otherGroup.appendChild(option);
+            });
+            voiceSelect.appendChild(otherGroup);
+        }
+
+        console.log(`✅ Loaded ${voices.length} voices`);
+    }
+
+    /**
+     * STEP 1: Handle PDF file upload
+     */
+    pdfUpload.addEventListener('change', async (event) => {
+        const file = event.target.files[0];
+        
+        if (!file) return;
+
         if (file.type !== 'application/pdf') {
             showStatus('❌ Please upload a PDF file!', 'error');
             return;
@@ -47,12 +107,11 @@ document.addEventListener('DOMContentLoaded', () => {
         showStatus('📖 Reading PDF file...', 'loading');
 
         try {
-            // Extract text from the PDF using our pdfHandler.js
             extractedText = await handlePDFUpload(file);
             
             if (extractedText && extractedText.length > 0) {
                 showStatus(`✅ PDF loaded! Found ${extractedText.length} characters. Click "Convert to Audiobook" to continue.`, 'success');
-                convertButton.disabled = false; // Enable the convert button
+                convertButton.disabled = false;
             } else {
                 showStatus('⚠️ No text found in PDF. Make sure the PDF contains readable text.', 'error');
             }
@@ -64,7 +123,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * STEP 2: Convert text to speech
-     * When user clicks "Convert to Audiobook", this code runs
      */
     convertButton.addEventListener('click', async () => {
         if (!extractedText) {
@@ -72,51 +130,92 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Get selected voice and engine options
-        const voice = voiceSelect.value;
-        const engine = engineSelect.value;
+        // Stop any currently playing speech
+        stopSpeech();
 
-        showStatus(`🎙️ Converting to speech using ${engine} engine...`, 'loading');
-        convertButton.disabled = true; // Disable button during conversion
+        // Get selected options
+        const selectedVoiceName = voiceSelect.value;
+        const rate = parseFloat(rateSelect.value);
+        const pitch = parseFloat(pitchSelect.value);
+
+        showStatus('🎙️ Converting to speech...', 'loading');
+        convertButton.disabled = true;
 
         try {
-            // Get voice options
+            // Find the selected voice object
+            const voices = await getAvailableVoices();
+            const selectedVoice = voices.find(v => v.name === selectedVoiceName);
+
             const options = {
-                voice: voice,
-                engine: engine,
-                language: 'en-US'
+                voice: selectedVoice,
+                rate: rate,
+                pitch: pitch,
+                volume: 1.0
             };
 
-            // Convert text to speech using Puter.js
-            const audio = await convertTextToSpeech(extractedText, options);
+            // Convert and start speaking
+            await convertTextToSpeech(extractedText, options);
             
-            // Set the audio source to our player
-            audioPlayer.src = audio.src;
-            audioPlayer.style.display = 'block'; // Show the audio player
+            showStatus('🎵 Speaking! Use the controls below to pause/resume/stop.', 'success');
+            playbackControls.style.display = 'flex';
+            progressInfo.style.display = 'block';
             
-            showStatus('🎵 Audiobook ready! Press play to listen.', 'success');
-            
-            // Auto-play the audio
-            audioPlayer.play();
+            // Update progress display
+            currentTextSpan.textContent = extractedText.substring(0, 100) + '...';
             
         } catch (error) {
             console.error('Error converting to speech:', error);
             showStatus(`❌ Error: ${error.message}`, 'error');
         } finally {
-            convertButton.disabled = false; // Re-enable the button
+            convertButton.disabled = false;
         }
     });
 
     /**
+     * Pause button handler
+     */
+    pauseBtn.addEventListener('click', () => {
+        pauseSpeech();
+        pauseBtn.style.display = 'none';
+        resumeBtn.style.display = 'inline-block';
+        showStatus('⏸️ Paused', 'loading');
+    });
+
+    /**
+     * Resume button handler
+     */
+    resumeBtn.addEventListener('click', () => {
+        resumeSpeech();
+        resumeBtn.style.display = 'none';
+        pauseBtn.style.display = 'inline-block';
+        showStatus('▶️ Speaking...', 'success');
+    });
+
+    /**
+     * Stop button handler
+     */
+    stopBtn.addEventListener('click', () => {
+        stopSpeech();
+        playbackControls.style.display = 'none';
+        progressInfo.style.display = 'none';
+        resumeBtn.style.display = 'none';
+        pauseBtn.style.display = 'inline-block';
+        showStatus('⏹️ Stopped', 'loading');
+    });
+
+    /**
      * Helper function to show status messages
-     * @param {string} message - The message to display
-     * @param {string} type - Type of message: 'loading', 'success', or 'error'
      */
     function showStatus(message, type) {
         statusDiv.textContent = message;
         statusDiv.className = `status ${type}`;
     }
 
-    // Initially disable the convert button until a PDF is loaded
+    // Initially disable the convert button
     convertButton.disabled = true;
+
+    // Reload voices when they change (some browsers load them asynchronously)
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
 });

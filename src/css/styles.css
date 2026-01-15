@@ -99,8 +99,10 @@ h1 {
 
 /* Voice settings */
 .voice-settings {
-    display: flex;
-    gap: 20px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 15px 20px;
+    align-items: center;
     margin-bottom: 20px;
     padding: 15px;
     background: #f8f9fa;
@@ -109,21 +111,75 @@ h1 {
 
 .voice-settings label {
     font-weight: 600;
-    margin-right: 10px;
     color: #555;
+    text-align: right;
 }
 
 .voice-settings select {
-    flex: 1;
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 8px;
     font-size: 14px;
     cursor: pointer;
+    background: white;
 }
 
 .voice-settings select:hover {
     border-color: #667eea;
+}
+
+.voice-settings select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Playback controls */
+.playback-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.playback-controls button {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.playback-controls button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+.playback-controls button:active {
+    transform: translateY(0);
+}
+
+/* Progress info */
+.progress-info {
+    padding: 15px;
+    margin: 20px 0;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border-left: 4px solid #667eea;
+}
+
+.progress-info p {
+    margin: 8px 0;
+    color: #555;
+}
+
+.progress-info span {
+    font-weight: 600;
+    color: #667eea;
 }
 
 /* Status messages */
@@ -184,11 +240,19 @@ h1 {
     }
 
     .voice-settings {
-        flex-direction: column;
-        gap: 15px;
+        grid-template-columns: 1fr;
+        gap: 10px;
     }
 
-    .voice-settings select {
+    .voice-settings label {
+        text-align: left;
+    }
+
+    .playback-controls {
+        flex-direction: column;
+    }
+
+    .playback-controls button {
         width: 100%;
     }
 }
