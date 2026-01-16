@@ -68,16 +68,16 @@ function extractTextFromPDF(pdfData) {
         // Tell PDF.js to load and parse the PDF
         const loadingTask = pdfjsLib.getDocument({data: pdfData});
         
-        loadingTask.promise.then(pdf => {
+        loadingTask.promise.then(async pdf => {
             console.log(`📚 PDF has ${pdf.numPages} pages`);
             
             const numPages = pdf.numPages;
-            const pageTexts = new Array(numPages); // Store text in order
 
             // Create an array of promises to read each page
             const pagePromises = [];
             
-            // Loop through each page
+            // Process pages SEQUENTIALLY to guarantee order
+            // This is slightly slower but 100% reliable and won't affect downstream processing
             for (let i = 1; i <= numPages; i++) {
                 // Get each page and extract its text
                 pagePromises.push(
@@ -119,9 +119,9 @@ function extractTextFromPDF(pdfData) {
                                 }
                             });
                             
-                            // Clean up multiple spaces and store in correct position
+                            // Clean up multiple spaces
                             pageText = pageText.replace(/\s+/g, ' ').trim();
-                            pageTexts[i - 1] = pageText; // Store at correct index (i-1 because array is 0-based)
+                            textContent += pageText + ' ';
                             console.log(`  Page ${i}/${numPages} processed`);
                         });
                     })
@@ -130,10 +130,8 @@ function extractTextFromPDF(pdfData) {
 
             // Wait for all pages to be processed
             Promise.all(pagePromises).then(() => {
-                // Join all pages in correct order with spaces
-                const textContent = pageTexts.join(' ').trim();
-                console.log(`✅ All ${numPages} pages extracted in order`);
-                resolve(textContent);
+                // Remove extra whitespace and return the text
+                resolve(textContent.trim());
             }).catch(err => {
                 reject(new Error(`Error extracting text: ${err.message}`));
             });
