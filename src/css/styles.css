@@ -229,6 +229,112 @@ h1 {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
+/* Seek controls */
+.seek-controls {
+    margin: 20px 0;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 2px solid #667eea;
+}
+
+.seek-slider-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.seek-slider-container label {
+    font-weight: 600;
+    color: #555;
+    min-width: 70px;
+}
+
+#seekSlider {
+    flex: 1;
+    height: 8px;
+    border-radius: 5px;
+    background: #ddd;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+#seekSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s;
+}
+
+#seekSlider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+#seekSlider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s;
+}
+
+#seekSlider::-moz-range-thumb:hover {
+    transform: scale(1.2);
+}
+
+#seekPosition {
+    font-weight: 600;
+    color: #667eea;
+    min-width: 45px;
+    text-align: right;
+}
+
+#chunkInfo {
+    font-size: 14px;
+    color: #888;
+    min-width: 100px;
+}
+
+.navigation-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.navigation-buttons button {
+    padding: 10px 20px;
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.navigation-buttons button:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.navigation-buttons button:active {
+    transform: translateY(0);
+}
+
 /* Responsive design for mobile */
 @media (max-width: 600px) {
     .container {
@@ -254,5 +360,18 @@ h1 {
 
     .playback-controls button {
         width: 100%;
+    }
+
+    .seek-slider-container {
+        flex-wrap: wrap;
+    }
+
+    .navigation-buttons {
+        flex-wrap: wrap;
+    }
+
+    .navigation-buttons button {
+        flex: 1;
+        min-width: 120px;
     }
 }
