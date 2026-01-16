@@ -314,17 +314,27 @@ function resumeSpeech() {
 }
 
 /**
- * Stop the current speech
+ * Cancel current speech synthesis without clearing text data
+ * Used for seeking to preserve textChunks array
  */
-function stopSpeech() {
+function cancelSpeech() {
     if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
         window.speechSynthesis.cancel();
         currentUtterance = null;
-        currentChunkIndex = 0;
-        textChunks = [];
         isPaused = false;
-        console.log('⏹️ Speech stopped');
+        console.log('🔇 Speech cancelled (preserving text)');
     }
+}
+
+/**
+ * Stop the current speech and clear all data
+ * Used when user clicks Stop button
+ */
+function stopSpeech() {
+    cancelSpeech();
+    currentChunkIndex = 0;
+    textChunks = [];
+    console.log('⏹️ Speech stopped and cleared');
 }
 
 /**
@@ -392,8 +402,8 @@ function seekToPercentage(percentage, options) {
     // Calculate target chunk based on percentage
     const targetChunk = Math.floor((percentage / 100) * textChunks.length);
     
-    // Stop current speech
-    stopSpeech();
+    // Cancel current speech (without clearing textChunks)
+    cancelSpeech();
     
     // Jump to calculated chunk
     currentChunkIndex = Math.min(targetChunk, textChunks.length - 1);
@@ -417,8 +427,8 @@ function seekNextChunk(options) {
         return;
     }
     
-    // Stop current speech
-    stopSpeech();
+    // Cancel current speech (without clearing textChunks)
+    cancelSpeech();
     
     // Move to next chunk
     currentChunkIndex++;
@@ -442,8 +452,8 @@ function seekPreviousChunk(options) {
         return;
     }
     
-    // Stop current speech
-    stopSpeech();
+    // Cancel current speech (without clearing textChunks)
+    cancelSpeech();
     
     // Move to previous chunk
     currentChunkIndex--;

@@ -228,6 +228,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     /**
      * Seek slider handler
      */
+    // Prevent slider updates while user is dragging
+    seekSlider.addEventListener('mousedown', () => {
+        isUserDraggingSlider = true;
+    });
+
+    seekSlider.addEventListener('mouseup', () => {
+        isUserDraggingSlider = false;
+    });
+
+    seekSlider.addEventListener('touchstart', () => {
+        isUserDraggingSlider = true;
+    });
+
+    seekSlider.addEventListener('touchend', () => {
+        isUserDraggingSlider = false;
+    });
+
     seekSlider.addEventListener('input', (e) => {
         const percentage = parseInt(e.target.value);
         seekPosition.textContent = `${percentage}%`;
@@ -235,6 +252,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     seekSlider.addEventListener('change', (e) => {
         const percentage = parseInt(e.target.value);
+        isUserDraggingSlider = false; // Reset flag when change completes
         seekToPercentage(percentage, currentVoiceOptions);
         updateProgressDisplay();
     });
@@ -266,11 +284,15 @@ document.addEventListener('DOMContentLoaded', async () => {
      * Update progress display
      */
     let progressInterval = null;
+    let isUserDraggingSlider = false;
 
     function updateProgressDisplay() {
         const position = getCurrentPosition();
-        seekSlider.value = position.percentage;
-        seekPosition.textContent = `${position.percentage}%`;
+        // Don't update slider if user is actively dragging it
+        if (!isUserDraggingSlider) {
+            seekSlider.value = position.percentage;
+            seekPosition.textContent = `${position.percentage}%`;
+        }
         chunkInfo.textContent = `Chunk ${position.currentChunk + 1}/${position.totalChunks}`;
         progressPercent.textContent = `${position.percentage}%`;
     }
