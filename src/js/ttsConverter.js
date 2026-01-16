@@ -350,3 +350,126 @@ function isSpeaking() {
 function isSpeechPaused() {
     return isPaused;
 }
+
+/**
+ * Get current playback percentage
+ * @returns {number} Current percentage (0-100)
+ */
+function getCurrentPercentage() {
+    if (textChunks.length === 0) return 0;
+    return Math.floor((currentChunkIndex / textChunks.length) * 100);
+}
+
+/**
+ * Get current position information
+ * @returns {object} Current position info
+ */
+function getCurrentPosition() {
+    return {
+        currentChunk: currentChunkIndex,
+        totalChunks: textChunks.length,
+        percentage: getCurrentPercentage(),
+        remainingChunks: textChunks.length - currentChunkIndex
+    };
+}
+
+/**
+ * Seek to a specific percentage position (0-100)
+ * @param {number} percentage - Percentage to seek to (0-100)
+ * @param {object} options - Voice options
+ */
+function seekToPercentage(percentage, options) {
+    if (percentage < 0 || percentage > 100) {
+        console.error('Percentage must be between 0 and 100');
+        return;
+    }
+    
+    if (textChunks.length === 0) {
+        console.error('No text loaded to seek');
+        return;
+    }
+    
+    // Calculate target chunk based on percentage
+    const targetChunk = Math.floor((percentage / 100) * textChunks.length);
+    
+    // Stop current speech
+    stopSpeech();
+    
+    // Jump to calculated chunk
+    currentChunkIndex = Math.min(targetChunk, textChunks.length - 1);
+    speakNextChunk(options);
+    
+    console.log(`⏩ Seeking to ${percentage}% (chunk ${currentChunkIndex + 1}/${textChunks.length})`);
+}
+
+/**
+ * Jump to next chunk
+ * @param {object} options - Voice options
+ */
+function seekNextChunk(options) {
+    if (textChunks.length === 0) {
+        console.error('No text loaded');
+        return;
+    }
+    
+    if (currentChunkIndex >= textChunks.length - 1) {
+        console.log('Already at the last chunk');
+        return;
+    }
+    
+    // Stop current speech
+    stopSpeech();
+    
+    // Move to next chunk
+    currentChunkIndex++;
+    speakNextChunk(options);
+    
+    console.log(`⏭️ Next chunk: ${currentChunkIndex + 1}/${textChunks.length}`);
+}
+
+/**
+ * Jump to previous chunk
+ * @param {object} options - Voice options
+ */
+function seekPreviousChunk(options) {
+    if (textChunks.length === 0) {
+        console.error('No text loaded');
+        return;
+    }
+    
+    if (currentChunkIndex <= 0) {
+        console.log('Already at the first chunk');
+        return;
+    }
+    
+    // Stop current speech
+    stopSpeech();
+    
+    // Move to previous chunk
+    currentChunkIndex--;
+    speakNextChunk(options);
+    
+    console.log(`⏮️ Previous chunk: ${currentChunkIndex + 1}/${textChunks.length}`);
+}
+
+/**
+ * Jump forward by a percentage amount
+ * @param {number} percentageAmount - Amount to jump forward (e.g., 10 for 10%)
+ * @param {object} options - Voice options
+ */
+function seekForward(percentageAmount, options) {
+    const currentPercentage = getCurrentPercentage();
+    const newPercentage = Math.min(100, currentPercentage + percentageAmount);
+    seekToPercentage(newPercentage, options);
+}
+
+/**
+ * Jump backward by a percentage amount
+ * @param {number} percentageAmount - Amount to jump backward (e.g., 10 for 10%)
+ * @param {object} options - Voice options
+ */
+function seekBackward(percentageAmount, options) {
+    const currentPercentage = getCurrentPercentage();
+    const newPercentage = Math.max(0, currentPercentage - percentageAmount);
+    seekToPercentage(newPercentage, options);
+}

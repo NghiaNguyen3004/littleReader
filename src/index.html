@@ -53,6 +53,22 @@
             <button id="stopBtn">⏹️ Stop</button>
         </div>
 
+        <div class="seek-controls" id="seekControls" style="display: none;">
+            <div class="seek-slider-container">
+                <label for="seekSlider">Position:</label>
+                <input type="range" id="seekSlider" min="0" max="100" value="0" step="1">
+                <span id="seekPosition">0%</span>
+                <span id="chunkInfo">Chunk 0/0</span>
+            </div>
+            
+            <div class="navigation-buttons">
+                <button id="backwardBtn" title="Skip backward 10%">⏪ -10%</button>
+                <button id="previousBtn" title="Previous chunk">⏮️ Previous</button>
+                <button id="nextBtn" title="Next chunk">⏭️ Next</button>
+                <button id="forwardBtn" title="Skip forward 10%">⏩ +10%</button>
+            </div>
+        </div>
+
         <div class="status" id="status"></div>
         
         <div class="progress-info" id="progressInfo" style="display: none;">
