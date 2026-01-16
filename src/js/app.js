@@ -36,9 +36,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     const progressInfo = document.getElementById('progressInfo');
     const currentTextSpan = document.getElementById('currentText');
     const progressPercent = document.getElementById('progressPercent');
+    const seekControls = document.getElementById('seekControls');
+    const seekSlider = document.getElementById('seekSlider');
+    const seekPosition = document.getElementById('seekPosition');
+    const chunkInfo = document.getElementById('chunkInfo');
+    const backwardBtn = document.getElementById('backwardBtn');
+    const previousBtn = document.getElementById('previousBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const forwardBtn = document.getElementById('forwardBtn');
 
     // Variable to store the extracted text from PDF
     let extractedText = '';
+    // Store current voice options for seeking
+    let currentVoiceOptions = {};
 
     // Load available voices
     await loadVoices();
@@ -153,15 +163,25 @@ document.addEventListener('DOMContentLoaded', async () => {
                 volume: 1.0
             };
 
+            // Store options for seeking
+            currentVoiceOptions = options;
+
             // Convert and start speaking
             await convertTextToSpeech(extractedText, options);
             
             showStatus('🎵 Speaking! Use the controls below to pause/resume/stop.', 'success');
             playbackControls.style.display = 'flex';
+            seekControls.style.display = 'block';
             progressInfo.style.display = 'block';
             
             // Update progress display
             currentTextSpan.textContent = extractedText.substring(0, 100) + '...';
+            
+            // Initialize progress display once
+            updateProgressDisplay();
+            
+            // Start progress update interval
+            startProgressUpdates();
             
         } catch (error) {
             console.error('Error converting to speech:', error);
@@ -196,12 +216,111 @@ document.addEventListener('DOMContentLoaded', async () => {
      */
     stopBtn.addEventListener('click', () => {
         stopSpeech();
+        stopProgressUpdates();
         playbackControls.style.display = 'none';
+        seekControls.style.display = 'none';
         progressInfo.style.display = 'none';
         resumeBtn.style.display = 'none';
         pauseBtn.style.display = 'inline-block';
+        seekSlider.value = 0;
+        seekPosition.textContent = '0%';
+        chunkInfo.textContent = 'Chunk 0/0';
         showStatus('⏹️ Stopped', 'loading');
     });
+
+    /**
+     * Seek slider handler
+     */
+    // Prevent slider updates while user is dragging
+    let isUserDraggingSlider = false;
+
+    seekSlider.addEventListener('mousedown', () => {
+        isUserDraggingSlider = true;
+    });
+
+    seekSlider.addEventListener('mouseup', () => {
+        isUserDraggingSlider = false;
+    });
+
+    seekSlider.addEventListener('touchstart', () => {
+        isUserDraggingSlider = true;
+    });
+
+    seekSlider.addEventListener('touchend', () => {
+        isUserDraggingSlider = false;
+    });
+
+    seekSlider.addEventListener('input', (e) => {
+        const percentage = parseInt(e.target.value);
+        seekPosition.textContent = `${percentage}%`;
+    });
+
+    seekSlider.addEventListener('change', (e) => {
+        const percentage = parseInt(e.target.value);
+        isUserDraggingSlider = false;
+        seekToPercentage(percentage, currentVoiceOptions);
+        updateProgressDisplay();
+    });
+
+    /**
+     * Navigation button handlers
+     */
+    previousBtn.addEventListener('click', () => {
+        seekPreviousChunk(currentVoiceOptions);
+        updateProgressDisplay();
+    });
+
+    nextBtn.addEventListener('click', () => {
+        seekNextChunk(currentVoiceOptions);
+        updateProgressDisplay();
+    });
+
+    backwardBtn.addEventListener('click', () => {
+        seekBackward(10, currentVoiceOptions);
+        updateProgressDisplay();
+    });
+
+    forwardBtn.addEventListener('click', () => {
+        seekForward(10, currentVoiceOptions);
+        updateProgressDisplay();
+    });
+
+    /**
+     * Update progress display
+     */
+    let progressInterval = null;
+
+    function updateProgressDisplay() {
+        try {
+            const position = getCurrentPosition();
+            // Don't update slider if user is actively dragging it
+            if (!isUserDraggingSlider) {
+                seekSlider.value = position.percentage;
+                seekPosition.textContent = `${position.percentage}%`;
+            }
+            chunkInfo.textContent = `Chunk ${position.currentChunk + 1}/${position.totalChunks}`;
+            progressPercent.textContent = `${position.percentage}%`;
+        } catch (error) {
+            console.error('Error updating progress display:', error);
+            stopProgressUpdates();
+        }
+    }
+
+    function startProgressUpdates() {
+        stopProgressUpdates();
+        progressInterval = setInterval(() => {
+            if (isSpeaking()) {
+                updateProgressDisplay();
+            }
+        }, 500);
+    }
+
+    function stopProgressUpdates() {
+        if (progressInterval) {
+            clearInterval(progressInterval);
+            progressInterval = null;
+        }
+    }
 
     /**
      * Helper function to show status messages
