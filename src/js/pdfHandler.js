@@ -72,6 +72,7 @@ function extractTextFromPDF(pdfData) {
             console.log(`📚 PDF has ${pdf.numPages} pages`);
             
             const numPages = pdf.numPages;
+            const pageTexts = new Array(numPages); // Store text in order
 
             // Create an array of promises to read each page
             const pagePromises = [];
@@ -119,9 +120,9 @@ function extractTextFromPDF(pdfData) {
                                 }
                             });
                             
-                            // Clean up multiple spaces
+                            // Clean up multiple spaces and store in correct position
                             pageText = pageText.replace(/\s+/g, ' ').trim();
-                            textContent += pageText + ' ';
+                            pageTexts[i - 1] = pageText; // Store at correct index (i-1 because array is 0-based)
                             console.log(`  Page ${i}/${numPages} processed`);
                         });
                     })
@@ -130,8 +131,10 @@ function extractTextFromPDF(pdfData) {
 
             // Wait for all pages to be processed
             Promise.all(pagePromises).then(() => {
-                // Remove extra whitespace and return the text
-                resolve(textContent.trim());
+                // Join all pages in correct order with spaces
+                const textContent = pageTexts.join(' ').trim();
+                console.log(`✅ All ${numPages} pages extracted in order`);
+                resolve(textContent);
             }).catch(err => {
                 reject(new Error(`Error extracting text: ${err.message}`));
             });
