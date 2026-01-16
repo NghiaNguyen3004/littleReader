@@ -173,9 +173,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             playbackControls.style.display = 'flex';
             seekControls.style.display = 'block';
             progressInfo.style.display = 'block';
+            console.log('🎮 Controls displayed:', {
+                playbackControls: playbackControls.style.display,
+                seekControls: seekControls.style.display,
+                progressInfo: progressInfo.style.display
+            });
             
             // Update progress display
             currentTextSpan.textContent = extractedText.substring(0, 100) + '...';
+            
+            // Initialize progress display once before starting interval
+            updateProgressDisplay();
             
             // Start progress update interval
             startProgressUpdates();
@@ -287,14 +295,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     let isUserDraggingSlider = false;
 
     function updateProgressDisplay() {
-        const position = getCurrentPosition();
-        // Don't update slider if user is actively dragging it
-        if (!isUserDraggingSlider) {
-            seekSlider.value = position.percentage;
-            seekPosition.textContent = `${position.percentage}%`;
+        try {
+            const position = getCurrentPosition();
+            // Don't update slider if user is actively dragging it
+            if (!isUserDraggingSlider) {
+                seekSlider.value = position.percentage;
+                seekPosition.textContent = `${position.percentage}%`;
+            }
+            chunkInfo.textContent = `Chunk ${position.currentChunk + 1}/${position.totalChunks}`;
+            progressPercent.textContent = `${position.percentage}%`;
+        } catch (error) {
+            console.error('Error updating progress display:', error);
+            // Stop updates if there's an error
+            stopProgressUpdates();
         }
-        chunkInfo.textContent = `Chunk ${position.currentChunk + 1}/${position.totalChunks}`;
-        progressPercent.textContent = `${position.percentage}%`;
     }
 
     function startProgressUpdates() {
