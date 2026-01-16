@@ -131,7 +131,9 @@ function extractTextFromPDF(pdfData) {
             // Wait for all pages to be processed
             Promise.all(pagePromises).then(() => {
                 // Remove extra whitespace and return the text
-                resolve(textContent.trim());
+                const finalText = textContent.trim();
+                // Store page break markers for footnote processing
+                resolve(finalText);
             }).catch(err => {
                 reject(new Error(`Error extracting text: ${err.message}`));
             });

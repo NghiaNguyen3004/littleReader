@@ -22,6 +22,126 @@ let currentUtterance = null;
 let isPaused = false;
 let textChunks = [];
 let currentChunkIndex = 0;
+let readFootnotes = false; // Toggle for reading footnotes
+let footnoteMap = new Map(); // Store footnote markers and their content
+
+/**
+ * Detect and extract footnotes from text
+ * Recognizes patterns: [1], (1), ¹, ², *, †, ‡, §
+ * @param {string} text - The text to process
+ * @returns {object} - Object with cleanText and footnotes map
+ */
+function detectFootnotes(text) {
+    const footnotes = new Map();
+    let processedText = text;
+
+    // Superscript number to regular number mapping
+    const superscriptMap = {
+        '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4',
+        '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9'
+    };
+
+    // Pattern to match footnote markers in text
+    // Matches: [1], (1), ¹, *, †, ‡, §, [*], etc.
+    const markerPattern = /\[(\d+|\*|†|‡|§)\]|\((\d+|\*|†|‡|§)\)|([¹²³⁴⁵⁶⁷⁸⁹⁰]+)|([\*†‡§])(?!\w)/g;
+    
+    // Pattern to match footnote content at bottom of text
+    // Matches: "1. Some footnote text" or "* Some footnote text"
+    const footnoteContentPattern = /(?:^|\n)\s*(\d+|\*|†|‡|§)\.\s+([^\n]+(?:\n(?!\d+\.|\*\.|†\.|‡\.|§\.).+)*)/gm;
+
+    // Extract footnote content first
+    let match;
+    let mainTextEnd = text.length;
+    const footnoteContents = [];
+    
+    while ((match = footnoteContentPattern.exec(text)) !== null) {
+        const marker = match[1];
+        const content = match[2].trim();
+        footnoteContents.push({ marker, content, index: match.index });
+    }
+
+    // If footnotes found at the end, separate main text from footnotes
+    if (footnoteContents.length > 0) {
+        // Find where footnotes section starts (usually last third of document)
+        const firstFootnoteIndex = footnoteContents[0].index;
+        const textLength = text.length;
+        
+        // If footnotes are in the last 40% of text, treat them as separate section
+        if (firstFootnoteIndex > textLength * 0.6) {
+            mainTextEnd = firstFootnoteIndex;
+            
+            // Store footnote content
+            footnoteContents.forEach(({ marker, content }) => {
+                footnotes.set(marker, content);
+                console.log(`📝 Detected footnote ${marker}: ${content.substring(0, 50)}...`);
+            });
+        }
+    }
+
+    // Process main text only
+    const mainText = text.substring(0, mainTextEnd);
+
+    console.log(`📋 Found ${footnotes.size} footnotes in document`);
+    return { cleanText: mainText, footnotes };
+}
+
+/**
+ * Insert footnote readings into text at appropriate markers
+ * @param {string} text - The text with footnote markers
+ * @param {Map} footnotes - Map of footnote markers to content
+ * @returns {string} - Text with footnotes inserted
+ */
+function insertFootnoteReadings(text, footnotes) {
+    if (footnotes.size === 0) return text;
+
+    let processedText = text;
+    const superscriptMap = {
+        '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4',
+        '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9'
+    };
+
+    // Replace markers with marker + footnote content
+    const markerPattern = /\[(\d+|\*|†|‡|§)\]|\((\d+|\*|†|‡|§)\)|([¹²³⁴⁵⁶⁷⁸⁹⁰]+)|([\*†‡§])(?!\w)/g;
+    
+    processedText = processedText.replace(markerPattern, (match, bracket, paren, superscript, symbol) => {
+        let marker = bracket || paren || symbol;
+        
+        // Convert superscript to regular number
+        if (superscript) {
+            marker = '';
+            for (let char of superscript) {
+                marker += superscriptMap[char] || char;
+            }
+        }
+
+        // Check if we have this footnote
+        if (footnotes.has(marker)) {
+            const footnoteContent = footnotes.get(marker);
+            return `. Footnote ${marker}: ${footnoteContent}. `;
+        }
+        
+        return match; // Keep original if no footnote found
+    });
+
+    return processedText;
+}
+
+/**
+ * Set whether to read footnotes or not
+ * @param {boolean} enabled - True to read footnotes, false to skip
+ */
+function setReadFootnotes(enabled) {
+    readFootnotes = enabled;
+    console.log(`📖 Footnote reading ${enabled ? 'enabled' : 'disabled'}`);
+}
+
+/**
+ * Get current footnote reading state
+ * @returns {boolean} - Current state
+ */
+function getReadFootnotes() {
+    return readFootnotes;
+}
 
 /**
  * Preprocess text to improve pronunciation accuracy
@@ -136,8 +256,21 @@ async function convertTextToSpeech(text, options = {}) {
     // Stop any currently playing speech
     stopSpeech();
 
+    // Detect and extract footnotes
+    const { cleanText, footnotes } = detectFootnotes(text);
+    footnoteMap = footnotes;
+
+    // If footnote reading is enabled, insert footnote content at markers
+    let textToProcess = cleanText;
+    if (readFootnotes && footnotes.size > 0) {
+        textToProcess = insertFootnoteReadings(cleanText, footnotes);
+        console.log(`📖 Footnote reading enabled - inserted ${footnotes.size} footnotes`);
+    } else if (footnotes.size > 0) {
+        console.log(`⏭️ Footnote reading disabled - skipping ${footnotes.size} footnotes`);
+    }
+
     // Preprocess text to improve pronunciation
-    const processedText = preprocessText(text);
+    const processedText = preprocessText(textToProcess);
 
     // Default options
     const defaultOptions = {

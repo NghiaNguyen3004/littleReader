@@ -44,6 +44,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const previousBtn = document.getElementById('previousBtn');
     const nextBtn = document.getElementById('nextBtn');
     const forwardBtn = document.getElementById('forwardBtn');
+    const footnoteToggle = document.getElementById('footnoteToggle');
+    const footnoteStatus = document.getElementById('footnoteStatus');
 
     // Variable to store the extracted text from PDF
     let extractedText = '';
@@ -52,6 +54,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Load available voices
     await loadVoices();
+
+    /**
+     * Footnote toggle handler
+     */
+    footnoteToggle.addEventListener('change', (e) => {
+        const isEnabled = e.target.checked;
+        setReadFootnotes(isEnabled);
+        footnoteStatus.textContent = isEnabled ? 'On' : 'Off';
+        footnoteStatus.className = isEnabled ? 'toggle-status active' : 'toggle-status';
+        
+        // Show notification
+        showStatus(
+            isEnabled ? '📖 Footnotes will be read aloud' : '⏭️ Footnotes will be skipped',
+            'success'
+        );
+    });
 
     /**
      * Load and populate voice options
