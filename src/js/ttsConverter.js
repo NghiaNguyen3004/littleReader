@@ -78,8 +78,8 @@ function preprocessText(text) {
 
     // Handle currency
     processed = processed.replace(/\$(\d+)/g, '$1 dollars');
-    processed = processed.replace(/£(\d+)/g, '$1 pounds');
-    processed = processed.replace(/€(\d+)/g, '$1 euros');
+    processed = processed.replace(/\£(\d+)/g, '$1 pounds');
+    processed = processed.replace(/\€(\d+)/g, '$1 euros');
 
     // 3. Spell out common acronyms (you can expand this list)
     const acronyms = {
@@ -200,7 +200,7 @@ function addNaturalPauses(text) {
  * @param {number} maxSentencesPerChunk - Maximum sentences per chunk (default: 3)
  * @returns {Array<string>} - Array of text chunks
  */
-function splitTextIntoChunks(text, maxSentencesPerChunk = 1) {
+function splitTextIntoChunks(text, maxSentencesPerChunk = 3) {
     // Add natural pauses first
     const enhancedText = addNaturalPauses(text);
 
